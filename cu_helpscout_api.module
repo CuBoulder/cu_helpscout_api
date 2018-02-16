@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ * Provides Drupal hooks for the hsc_updater module.
+ */
+
+// The access key can be gathered from https://secure.helpscout.net/users/authentication/<uid>/api-keys.
+// It is weirdly used as the user in the API request.
+define('HSC_API_ACCESS_KEY', $_SERVER['HSC_API_ACCESS_KEY'] ? $_SERVER['HSC_API_ACCESS_KEY'] : '');
+
+// The password is "fake" and used in the authentication header.
+define('HSC_API_PASSWORD', 'X');
+define('HSC_API_URL', 'https://api.helpscout.net/v1');
+
+/**
+ * Implements hook_cron().
+ *
+ * Interact with HelpScout API during cron runs.
+ */
+function cu_helpscout_api_cron() {
+
+  // Pass in authentication to updater.
+  $auth = [
+    'user' => HSC_API_ACCESS_KEY,
+    'password' => HSC_API_PASSWORD,
+  ];
+  $api_url = HSC_API_URL;
+
+  $hsc = new HelpScoutUpdater($api_url, $auth);
+
+  // The created at date in HelpScout is a variation of the "ISO 8601" format.
+  // Since it isn't exactly the standard, we can't use date('c').
+  // Instead, we get yesterday in the form of 1-1-2018 and add that to the jacked up format.
+  $yesterday = date("Y-m-d", strtotime("-1 day", time()));
+  $last_updated = variable_get('hsc_last_updated', $yesterday);
+  $query = "query=(createdAt%3A%5B". $last_updated. "T00%3A00%3A00Z%20TO%20*%5D)";
+
+  // Grab conversations that have been created since last time.
+  $conversations = $hsc->getConversationsByQuery($query);
+
+  // Custom Beacon fields.
+  // "Website URL" is ID 4965.
+  // "Topic" is ID 5222.
+  // "Full Name" is ID 5223.
+  // "Email" is ID 5224.
+  // "Organization.Level1" is ID 6672.
+  // "Organization.Level2" is ID 6673
+  // "Organization.Level3" is ID 6674
+  // "Oganization.Level4" is ID 6675
+
+  // Beacon fields located in cu_helpscout.module in cu_helpscout_preprocess_page().
+  // They will have a prefix and suffix of "$$".
+
+  $mappings = [
+    'site_url' => 4965,
+    'user_name' => 5223,
+    'user_email' => 5224,
+    'organization_level_one' => 6672,
+    'organization_level_two' => 6673,
+    'organization_level_three' => 6674,
+    'organization_level_four' => 6675,
+    'topic' => 5222,
+  ];
+
+  // Map Beacon fields to custom fields.
+  $hsc->setMappings($mappings);
+  $modified_conversations = $hsc->mapBeaconFieldsToConversations($conversations);
+
+  // Send updated conversations to HelpScout.
+  $hsc->updateConversations($modified_conversations);
+}

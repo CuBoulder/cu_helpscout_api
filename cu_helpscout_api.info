@@ -1,0 +1,7 @@
+name = HelpScout Updater
+description = Periodically update conversations on HelpScout.
+core = 7.x
+package = HelpScout
+version = 7.x-1.0
+
+files[] = src/Services/HelpScoutUpdater.php

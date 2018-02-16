@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * Drupal install hooks for hsc_update module.
+ */
+
+/**
+ * Implements hook_schema().
+ *
+ * @return array
+ */
+function cu_helpscout_api_schema() {
+  $schema = [];
+
+  $schema['hsc_updated_conversations'] = [
+    'description' => 'Table to store updated HelpScout information.',
+    'fields' => [
+      'convo_id' => [
+        'description' => 'ID of updated conversation.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'updated_on' => [
+        'description' => 'Type of Node Layout is associated with',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ],
+      'payload_sent' => [
+        'description' => 'Body sent to HelpScout',
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => FALSE,
+      ],
+    ],
+    'primary key' => ['convo_id'],
+  ];
+
+  return $schema;
+}
