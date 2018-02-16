@@ -81,12 +81,15 @@ You will need to decipher the field IDs stored in HelpScout to add a new custom 
 The fields you need to add will be in a `customFields` array.
 
 ```json
-    "customFields": [
-      {
-        "fieldId": 4965,
-        "name": "Website URL",
-        "value": "http://127.0.0.1:8068",
-        "type": "SINGLE_LINE",
-        "label": "http://127.0.0.1:8068"
-      },
-``
+{
+  "customFields": [
+    {
+      "fieldId": 4965,
+      "name": "Website URL",
+      "value": "http://127.0.0.1:8068",
+      "type": "SINGLE_LINE",
+      "label": "http://127.0.0.1:8068"
+    },
+  ],
+}
+```
